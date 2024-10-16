@@ -8,9 +8,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ModeToggle } from "@/components/ThemeToggle";
-import { Button } from "@/components/ui/button";
-import { CircleUser } from "lucide-react";
-import { SignOutButton, UserButton } from "@clerk/nextjs";
+
+import {  UserButton } from "@clerk/nextjs";
 
 function DashboardLayout({ children }: { children: ReactNode }) {
   return (
