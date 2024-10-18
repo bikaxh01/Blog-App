@@ -1,11 +1,12 @@
 "use client";
-import * as React from "react";
+import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { siteSchema } from "@/lib/siteSchema";
+import { useDebounceCallback } from "usehooks-ts";
 import toast from "react-hot-toast";
 import {
   Card,
@@ -18,6 +19,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -25,12 +27,13 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 
-
 function NewSitePage() {
-  const { mutate, isPending } = useMutation({
+  const [subDirectoryName, setSubDirectoryName] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  let { mutate, isPending } = useMutation({
     mutationFn: async (data: z.infer<typeof siteSchema>) => {
       const response = await axios.post("/api/create-site", {
         data,
@@ -42,24 +45,46 @@ function NewSitePage() {
     resolver: zodResolver(siteSchema),
   });
 
-  const {
-    formState: { isLoading },
-  } = useForm();
-  const route = useRouter()
+  const debounce = useDebounceCallback(setSubDirectoryName, 400);
+  const queryClient = useQueryClient()
+  // handle sub-directory
+
+  useEffect(() => {
+    const verifySubDirectory = async () => {
+      if (subDirectoryName) {
+        try {
+          const response = await axios.get(
+            `/api/verify-subdirectory?name=${subDirectoryName}`
+          );
+          setErrorMessage("");
+        } catch (error) {
+          const Error = error as AxiosError;
+          //@ts-ignore
+          const message = Error.response?.data.message;
+          setErrorMessage(message);
+          isPending = true;
+        }
+      }
+    };
+    verifySubDirectory();
+  }, [subDirectoryName]);
+
+  const route = useRouter();
   const onSubmit = async (data: z.infer<typeof siteSchema>) => {
     try {
       mutate(data, {
         onSuccess: (data) => {
           toast.success(data.message);
-            route.push('/dashboard/sites')
+          //@ts-ignore
+            queryClient.invalidateQueries("sites")
+          route.push("/dashboard/sites");
         },
         onError: (error) => {
           toast.error("Something Went wrong");
         },
       });
-      console.log("🚀 ~ onSubmit ~ data:", data);
     } catch (error) {
-    console.log("🚀 ~ onSubmit ~ error:", error)
+      console.log("🚀 ~ onSubmit ~ error:", error);
     }
   };
 
@@ -95,8 +120,18 @@ function NewSitePage() {
                       <FormItem>
                         <FormLabel>Sub Directory</FormLabel>
                         <FormControl>
-                          <Input placeholder="Sub Directory" {...field} />
+                          <Input
+                            placeholder="Sub Directory"
+                            {...field}
+                            onChange={(e) => {
+                              field.onChange(e);
+                              debounce(e.target.value);
+                            }}
+                          />
                         </FormControl>
+                        <FormDescription>
+                          <span className=" text-red-700">{errorMessage}</span>
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -117,7 +152,7 @@ function NewSitePage() {
                   <Button
                     className="bg-primary"
                     type="submit"
-                    disabled={isLoading}
+                    disabled={isPending || errorMessage ? true:false}
                   >
                     Submit
                   </Button>
