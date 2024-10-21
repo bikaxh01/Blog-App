@@ -27,7 +27,7 @@ function SiteCardComponent({ site }: { site: siteInterface }) {
       </CardHeader>
       <CardFooter>
         <Button asChild>
-          <Link href={"#"}>View Articles</Link>
+          <Link href={`/dashboard/sites/${site.id}`}>View Articles</Link>
         </Button>
       </CardFooter>
     </Card>

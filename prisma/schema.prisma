@@ -8,21 +8,37 @@ datasource db {
 }
 
 model user {
-  id        String   @id 
+  id        String   @id
   firstName String
   lastName  String
   email     String   @unique
   avatarURl String
   createdAt DateTime @default(now())
   site      site[]
+  post      post[]
 }
 
 model site {
   id           String   @id @default(uuid())
   name         String
   subDirectory String   @unique
-  description  String ?
+  description  String?
   userId       String
   user         user     @relation(fields: [userId], references: [id])
   createdAt    DateTime @default(now())
+  post         post[]
+}
+
+model post {
+  id          String   @id @default(uuid())
+  title       String
+  content     Json
+  description String?
+  imageUrl    String
+  siteId      String
+  userId      String
+  user        user     @relation(fields: [userId], references: [id])
+  site        site     @relation(fields: [siteId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

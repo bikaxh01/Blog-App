@@ -5,7 +5,9 @@ import { ThemeProvider } from "@/utils/ThemeProvider";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "react-hot-toast";
 import QueryProvider from "@/utils/QueryProvider";
-
+import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
+import { extractRouterConfig } from "uploadthing/server";
+import { ourFileRouter } from "@/app/api/uploadthing/core";
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
@@ -40,7 +42,7 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <QueryProvider>{children}</QueryProvider>
-
+            <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />
             <Toaster />
           </ThemeProvider>
         </body>

@@ -42,10 +42,13 @@ function SitePage() {
             </div>
           </div>
         ) : (
-          <div className=" flex flex-wrap gap-4 sm:grid-cols-2">
+          <div>
+            <h2 className=" text-2xl font-semibold text-primary">Manage Sites</h2>
+          <div className=" flex flex-wrap gap-4 sm:grid-cols-2 mt-3">
             {data.map((site: any) => (
              <SiteCardComponent site={site} key={site.id} />
             ))}
+          </div>
           </div>
         )}
       </div>
